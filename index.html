@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>基因变异 × 临床试验匹配 | NFIN 原型 v3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B2430; --ink-soft:#4A5568;
+    --paper:#F6F4EF; --paper-card:#FFFFFF; --line:#DCD8CE;
+    --teal:#0F6E56; --teal-bg:#E1F5EE;
+    --amber:#854F0B; --amber-bg:#FAEEDA;
+    --coral:#993C1D; --coral-bg:#FAECE7;
+    --navy:#185FA5; --navy-bg:#EAF1FA;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;line-height:1.6;}
+  .wrap{max-width:800px;margin:0 auto;padding:0 20px 80px;}
+  header{padding:48px 0 28px;border-bottom:1px solid var(--line);}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);margin:0 0 12px;}
+  h1{font-family:'Source Serif 4',serif;font-weight:700;font-size:30px;margin:0 0 10px;letter-spacing:-0.01em;}
+  .lede{font-size:15px;color:var(--ink-soft);max-width:60ch;margin:0;}
+
+  .protobar{background:var(--ink);color:var(--paper);text-align:center;font-size:12px;font-family:'JetBrains Mono',monospace;padding:6px;letter-spacing:.03em;}
+
+  .disclaimer{display:flex;gap:12px;background:var(--amber-bg);border:1px solid #F0D9A8;border-radius:10px;padding:14px 18px;margin:24px 0;}
+  .disclaimer .dot{flex-shrink:0;width:8px;height:8px;border-radius:50%;background:var(--amber);margin-top:6px;}
+  .disclaimer p{margin:0;font-size:13px;color:#5C3A08;}
+
+  section.panel{padding:30px 0;border-bottom:1px solid var(--line);}
+  .panel h2{font-family:'Source Serif 4',serif;font-weight:600;font-size:18px;margin:0 0 4px;display:flex;align-items:center;gap:8px;}
+  .req-tag{font-family:'JetBrains Mono',monospace;font-size:10px;background:var(--coral-bg);color:var(--coral);padding:2px 8px;border-radius:6px;letter-spacing:.03em;}
+  .opt-tag{font-family:'JetBrains Mono',monospace;font-size:10px;background:var(--navy-bg);color:var(--navy);padding:2px 8px;border-radius:6px;letter-spacing:.03em;}
+  .panel .sub{font-size:13px;color:var(--ink-soft);margin:0 0 16px;}
+
+  .example-box{background:#fff;border:1px dashed var(--line);border-radius:10px;padding:12px 14px;margin-bottom:16px;}
+  .example-box .ex-title{font-size:12px;font-weight:600;color:var(--ink-soft);margin:0 0 8px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.03em;}
+  .example-row{display:flex;gap:10px;font-size:12.5px;color:var(--ink-soft);padding:4px 0;flex-wrap:wrap;}
+  .example-row b{color:var(--ink);font-weight:600;min-width:88px;display:inline-block;}
+
+  .form-grid{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr auto;gap:8px;align-items:end;margin-bottom:14px;}
+  .form-grid.germline{grid-template-columns:1.2fr 1fr 1.2fr 1fr auto;}
+  .field label{display:block;font-size:11px;color:var(--ink-soft);margin-bottom:4px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.03em;}
+  .field input, .field select{
+    width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;
+    font-family:'Inter',sans-serif;font-size:13px;background:#fff;color:var(--ink);
+  }
+  .add-btn{
+    background:var(--navy);color:#fff;border:none;border-radius:8px;
+    padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;height:37px;
+  }
+  .add-btn:hover{opacity:.88;}
+
+  .variant-list{display:flex;flex-direction:column;gap:6px;margin-bottom:6px;}
+  .variant-item{
+    display:flex;align-items:center;gap:10px;background:var(--paper-card);
+    border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:13px;
+  }
+  .variant-item .vi-main{flex:1;font-family:'JetBrains Mono',monospace;}
+  .variant-item .vi-remove{cursor:pointer;color:var(--coral);font-size:16px;background:none;border:none;padding:0 4px;}
+
+  button#analyze{
+    width:100%;background:var(--ink);color:var(--paper);border:none;border-radius:10px;
+    font-weight:600;font-size:15px;padding:14px;cursor:pointer;margin-top:8px;
+  }
+  button#analyze:hover{opacity:.85;}
+
+  .section-label{font-family:'JetBrains Mono',monospace;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin:22px 0 10px;}
+
+  .cross-alert{display:flex;gap:10px;background:var(--coral-bg);border:1px solid #E7C4B8;border-radius:10px;padding:12px 16px;margin-bottom:10px;}
+  .cross-alert p{margin:0;font-size:13px;color:var(--coral);}
+
+  .result-card{background:var(--paper-card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:9px;}
+  .result-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px;}
+  .result-top .name{font-size:14px;font-weight:600;}
+  .badge{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;padding:3px 10px;border-radius:999px;white-space:nowrap;}
+  .badge.high{background:var(--teal-bg);color:var(--teal);}
+  .badge.mid{background:var(--amber-bg);color:var(--amber);}
+  .badge.low{background:var(--coral-bg);color:var(--coral);}
+  .result-card .rules{font-size:12px;color:var(--ink-soft);margin:0 0 2px;}
+  .result-card .rules span{display:inline-block;margin-right:10px;}
+  .country-tag{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--navy);background:var(--navy-bg);padding:2px 8px;border-radius:6px;}
+
+  .empty-hint{font-size:13px;color:var(--ink-soft);text-align:center;padding:20px 0;}
+  footer{padding:28px 0 0;text-align:center;}
+  footer p{font-size:12px;color:var(--ink-soft);}
+  @media (max-width:680px){
+    .form-grid, .form-grid.germline{grid-template-columns:1fr 1fr;}
+    .add-btn{grid-column:1/-1;}
+    h1{font-size:24px;}
+  }
+</style>
+</head>
+<body>
+<div class="protobar">内部原型 / 演示版本 · 非最终产品 · 不构成治疗建议</div>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">NFIN · 分子谱-试验匹配原型 v3</p>
+  <h1>输入检出的变异，生成匹配结果</h1>
+  <p class="lede">不涉及报告上传/OCR，也不存储任何数据——刷新页面即清空。肿瘤组织检测为必填，全外显子(胚系)为选填。</p>
+</header>
+
+<div class="disclaimer">
+  <span class="dot"></span>
+  <p>这是辅助梳理工具，不是治疗建议。置信度由规则引擎自动判断，仅供医生/研究协调人参考复核。判断逻辑详见随附文档，欢迎指出问题。</p>
+</div>
+
+<section class="panel">
+  <h2>第一步：肿瘤组织检测 <span class="req-tag">必填</span></h2>
+  <p class="sub">来自肿瘤切片的体细胞检测报告，是匹配试验/药物的主要依据。</p>
+
+  <div class="example-box">
+    <p class="ex-title">示例（帮助理解各字段怎么填）</p>
+    <div class="example-row"><b>点突变</b>NF1 · 点突变 · 填 VAF 95% · 报告若标"无义突变/截断"通常较高</div>
+    <div class="example-row"><b>纯合缺失</b>MTAP · 拷贝数纯合缺失 · 填 GCN:0 或"纯合缺失"字样</div>
+    <div class="example-row"><b>杂合缺失</b>PTEN · 拷贝数杂合缺失 · 填 GCN:1</div>
+    <div class="example-row"><b>扩增</b>PDGFRA · 拷贝数扩增 · 填 CN:5.8 或拷贝数系数</div>
+    <div class="example-row"><b>融合</b>NF2 · 融合 · 填 VAF 71.7%，基因名可写"NF2::UQCR10"这种融合对</div>
+  </div>
+
+  <div class="form-grid" id="tumor-form">
+    <div class="field"><label>基因</label><input type="text" id="t-gene" placeholder="例如 NF1"></div>
+    <div class="field"><label>变异类型</label>
+      <select id="t-type">
+        <option value="point">点突变</option>
+        <option value="homdel">拷贝数纯合缺失</option>
+        <option value="hetdel">拷贝数杂合缺失</option>
+        <option value="amp">拷贝数扩增</option>
+        <option value="fusion">基因融合</option>
+      </select>
+    </div>
+    <div class="field"><label>丰度/拷贝数值</label><input type="text" id="t-value" placeholder="如 VAF 95% 或 CN 5.8"></div>
+    <div class="field"><label>报告自带分级</label>
+      <select id="t-tier">
+        <option value="unknown">未标注/不确定</option>
+        <option value="I">I类/A级(明确)</option>
+        <option value="II">II类/B-C级(潜在)</option>
+        <option value="III">III类/D级或VUS</option>
+      </select>
+    </div>
+    <button class="add-btn" id="t-add">添加</button>
+  </div>
+  <div class="variant-list" id="tumor-list"></div>
+</section>
+
+<section class="panel">
+  <h2>第二步：全外显子/胚系检测 <span class="opt-tag">选填</span></h2>
+  <p class="sub">如果患者做过家系全外显子(WES)，可以在这里补充胚系变异，用于核查肿瘤检测里的发现是否为遗传背景、或识别胚系奠基性事件。</p>
+
+  <div class="example-box">
+    <p class="ex-title">示例</p>
+    <div class="example-row"><b>胚系微缺失</b>NF1 · 大片段缺失 · 遗传来源选"新生(de novo)" · 致病性选"致病"</div>
+    <div class="example-row"><b>无关背景变异</b>NOTCH1 · 点突变 · 遗传来源选"父系遗传" · 致病性选"意义未明"</div>
+  </div>
+
+  <div class="form-grid germline" id="germline-form">
+    <div class="field"><label>基因</label><input type="text" id="g-gene" placeholder="例如 NF1"></div>
+    <div class="field"><label>变异类型</label>
+      <select id="g-type">
+        <option value="point">点突变</option>
+        <option value="largedel">大片段缺失</option>
+        <option value="other">其他</option>
+      </select>
+    </div>
+    <div class="field"><label>遗传来源</label>
+      <select id="g-origin">
+        <option value="denovo">新生(de novo)</option>
+        <option value="paternal">父系遗传</option>
+        <option value="maternal">母系遗传</option>
+        <option value="unknown">未知</option>
+      </select>
+    </div>
+    <div class="field"><label>致病性分类</label>
+      <select id="g-path">
+        <option value="pathogenic">致病</option>
+        <option value="likely">疑似致病</option>
+        <option value="vus">意义未明(VUS)</option>
+        <option value="benign">良性/疑似良性</option>
+      </select>
+    </div>
+    <button class="add-btn" id="g-add">添加</button>
+  </div>
+  <div class="variant-list" id="germline-list"></div>
+
+  <button id="analyze">生成匹配结果</button>
+</section>
+
+<section class="panel" id="results-section" style="display:none;">
+  <h2>匹配结果</h2>
+  <p class="sub">按置信度排序；同等置信度内，国内试验/已上市药物优先于境外试验。</p>
+  <div id="cross-alerts"></div>
+  <div class="section-label">变异置信度判断</div>
+  <div id="variant-output"></div>
+  <div class="section-label">对应的试验 / 药物方向</div>
+  <div id="trial-output"></div>
+</section>
+
+</div>
+
+<script>
+const FOUNDER_GENES = ["NF1","CDKN2A","CDKN2B","SUZ12","EED"];
+
+const TRIAL_DB = [
+  {name:"ASTX727（地西他滨类，MPNST 专项试验）", targets:["SUZ12","EED","PRC2"], country:"境外(美国)", type:"试验"},
+  {name:"GH56（PRMT5/MTA 协同抑制剂）", targets:["MTAP"], country:"中国", type:"试验"},
+  {name:"GH56 + MAT2A 联合方案", targets:["MTAP"], country:"中国", type:"试验"},
+  {name:"哌柏西利（CDK4/6 抑制剂）", targets:["CDKN2A","CDKN2B"], country:"已上市药物", type:"药物"},
+  {name:"安罗替尼 / 帕唑帕尼（多靶点 TKI）", targets:["PDGFRA","KDR"], country:"已上市药物(中国)", type:"药物"},
+  {name:"伊马替尼", targets:["KIT"], country:"已上市药物", type:"药物", caution:"注意：KIT单纯扩增(非激活突变)在部分报告中被列为可能耐药，非敏感依据"},
+  {name:"PI3K 抑制剂类试验", targets:["PTEN"], country:"境外(美国)", type:"试验"},
+  {name:"MET 抑制剂 + ASKC202", targets:["MET"], country:"中国", type:"试验"},
+  {name:"FGFR 抑制剂篮子试验", targets:["FGFR1","FGFR2","FGFR3"], country:"境外", type:"试验"},
+  {name:"KRAS G12 系列靶向试验", targets:["KRAS"], country:"境外(美国/澳洲)", type:"试验"},
+];
+
+function normGene(g){ return g.trim().toUpperCase(); }
+function parseVAF(valueStr){
+  if(!valueStr) return null;
+  const m = valueStr.match(/(\d+(\.\d+)?)\s*%/);
+  return m ? parseFloat(m[1]) : null;
+}
+
+function judgeConfidence(v){
+  const reasons = [];
+  const gene = normGene(v.gene);
+  const isFounder = FOUNDER_GENES.includes(gene);
+  const vaf = parseVAF(v.value);
+  let tier = "mid";
+
+  if(v.tier === "I"){ tier = "high"; reasons.push("报告标注为I类/A级(明确临床意义)"); }
+  else if(v.tier === "II"){ tier = "mid"; reasons.push("报告标注为II类/B-C级(潜在临床意义)"); }
+  else if(v.tier === "III"){ tier = "low"; reasons.push("报告标注为III类/D级或VUS(意义未明)"); }
+  else { reasons.push("报告未标注分级，以下方规则综合判断"); }
+
+  if((v.type === "point" || v.type === "fusion") && vaf !== null){
+    if(vaf < 5){
+      tier = "low";
+      reasons.push("丰度(VAF "+vaf+"%)低于5%阈值(占位值，待专家确认)，大概率为亚克隆或背景噪音");
+    } else if(vaf >= 50){
+      reasons.push("丰度(VAF "+vaf+"%)较高，倾向克隆性事件");
+    }
+  }
+
+  if(v.type === "homdel" || v.type === "amp"){
+    reasons.push("纯合缺失/扩增属于强信号类型，跨平台重复性通常较好");
+  }
+
+  if(isFounder){
+    if(tier === "low") tier = "mid";
+    reasons.push("属于MPNST公认奠基性驱动基因(NF1/CDKN2A/B/PRC2相关)，给予置信度底线");
+  }
+
+  return {tier, reasons};
+}
+
+function badge(tier){
+  const map = {high:"高置信度", mid:"中置信度", low:"低置信度"};
+  return '<span class="badge '+tier+'">'+map[tier]+'</span>';
+}
+
+let tumorVariants = [];
+let germlineVariants = [];
+
+function renderList(container, arr, labelFn){
+  const el = document.getElementById(container);
+  if(arr.length === 0){ el.innerHTML = '<p class="empty-hint">还没有添加</p>'; return; }
+  el.innerHTML = arr.map((v,i)=>
+    '<div class="variant-item"><span class="vi-main">'+labelFn(v)+'</span>'
+    + '<button class="vi-remove" data-idx="'+i+'">×</button></div>'
+  ).join("");
+  el.querySelectorAll(".vi-remove").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      arr.splice(parseInt(btn.dataset.idx),1);
+      renderList(container, arr, labelFn);
+    });
+  });
+}
+
+const tumorLabel = v => {
+  const t = {point:"点突变", homdel:"纯合缺失", hetdel:"杂合缺失", amp:"扩增", fusion:"融合"}[v.type];
+  return v.gene+' · '+t+(v.value?(' · '+v.value):'')+(v.tier!=="unknown"?(' · '+v.tier+'类'):'');
+};
+const germlineLabel = v => {
+  const t = {point:"点突变", largedel:"大片段缺失", other:"其他"}[v.type];
+  const origin = {denovo:"新生", paternal:"父系遗传", maternal:"母系遗传", unknown:"未知来源"}[v.origin];
+  const path = {pathogenic:"致病", likely:"疑似致病", vus:"VUS", benign:"良性"}[v.path];
+  return v.gene+' · '+t+' · '+origin+' · '+path;
+};
+
+document.getElementById("t-add").addEventListener("click", ()=>{
+  const gene = document.getElementById("t-gene").value.trim();
+  if(!gene) return;
+  tumorVariants.push({
+    gene, type: document.getElementById("t-type").value,
+    value: document.getElementById("t-value").value.trim(),
+    tier: document.getElementById("t-tier").value
+  });
+  document.getElementById("t-gene").value = "";
+  document.getElementById("t-value").value = "";
+  renderList("tumor-list", tumorVariants, tumorLabel);
+});
+
+document.getElementById("g-add").addEventListener("click", ()=>{
+  const gene = document.getElementById("g-gene").value.trim();
+  if(!gene) return;
+  germlineVariants.push({
+    gene, type: document.getElementById("g-type").value,
+    origin: document.getElementById("g-origin").value,
+    path: document.getElementById("g-path").value
+  });
+  document.getElementById("g-gene").value = "";
+  renderList("germline-list", germlineVariants, germlineLabel);
+});
+
+const countryRank = (c)=>{
+  if(c.indexOf("中国")>=0) return 0;
+  if(c.indexOf("已上市")>=0) return 1;
+  return 2;
+};
+const tierRank = {high:0, mid:1, low:2};
+
+document.getElementById("analyze").addEventListener("click", ()=>{
+  const section = document.getElementById("results-section");
+  const vOut = document.getElementById("variant-output");
+  const tOut = document.getElementById("trial-output");
+  const crossOut = document.getElementById("cross-alerts");
+
+  if(tumorVariants.length===0){
+    section.style.display = "block";
+    vOut.innerHTML = '<p class="empty-hint">肿瘤组织检测是必填项，请先添加至少一条变异</p>';
+    tOut.innerHTML = ""; crossOut.innerHTML = "";
+    section.scrollIntoView({behavior:"smooth"});
+    return;
+  }
+
+  // 规则5：跨区比对(仅对非奠基基因触发——NF1等奠基基因在两边同时出现是预期内的胚系+体细胞双打击机制，不需要提醒；
+  // 真正需要人工核查的是奠基清单之外的基因同时出现，例如既往案例中的NOTCH1，属于无关背景变异)
+  const germlineGenes = germlineVariants.map(g=>normGene(g.gene));
+  let crossHtml = "";
+  tumorVariants.forEach(v=>{
+    const gene = normGene(v.gene);
+    if(germlineGenes.includes(gene) && !FOUNDER_GENES.includes(gene)){
+      crossHtml += '<div class="cross-alert"><p>⚠ <b>'+v.gene+'</b> 同时出现在肿瘤检测和全外显子检测中，且不在MPNST奠基基因清单内——请人工判断这是否为无关的遗传背景变异(参考既往案例中的NOTCH1，确认为父系遗传、与MPNST无关)。系统不会自动归类。</p></div>';
+    }
+  });
+  crossOut.innerHTML = crossHtml;
+
+  const judged = tumorVariants.map(v=>({...v, result: judgeConfidence(v)}));
+  judged.sort((a,b)=> tierRank[a.result.tier]-tierRank[b.result.tier]);
+
+  vOut.innerHTML = judged.map(v=>{
+    const typeLabel = {point:"点突变", homdel:"纯合缺失", hetdel:"杂合缺失", amp:"扩增", fusion:"融合"}[v.type];
+    return '<div class="result-card">'
+      + '<div class="result-top"><span class="name">'+v.gene+' · '+typeLabel+(v.value?(' · '+v.value):'')+'</span>'+badge(v.result.tier)+'</div>'
+      + v.result.reasons.map(r=>'<p class="rules"><span>· '+r+'</span></p>').join("")
+      + '</div>';
+  }).join("");
+
+  let matches = [];
+  judged.forEach(v=>{
+    const gene = normGene(v.gene);
+    TRIAL_DB.forEach(t=>{
+      if(t.targets.map(normGene).includes(gene)) matches.push({trial:t, variant:v});
+    });
+  });
+  matches.sort((a,b)=>{
+    const tierDiff = tierRank[a.variant.result.tier]-tierRank[b.variant.result.tier];
+    if(tierDiff !== 0) return tierDiff;
+    return countryRank(a.trial.country)-countryRank(b.trial.country);
+  });
+
+  if(matches.length===0){
+    tOut.innerHTML = '<p class="empty-hint">当前演示试验库中没有匹配到对应靶点，实际产品中应接入完整的 literature tracker 数据源</p>';
+  } else {
+    tOut.innerHTML = matches.map(m=>
+      '<div class="result-card">'
+      + '<div class="result-top"><span class="name">'+m.trial.name+'</span>'+badge(m.variant.result.tier)+'</div>'
+      + '<p class="rules"><span>对应变异：'+m.variant.gene+'</span><span class="country-tag">'+m.trial.country+'</span></p>'
+      + (m.trial.caution ? '<p class="rules" style="color:var(--coral);">⚠ '+m.trial.caution+'</p>' : '')
+      + '</div>'
+    ).join("");
+  }
+
+  section.style.display = "block";
+  section.scrollIntoView({behavior:"smooth"});
+});
+
+renderList("tumor-list", tumorVariants, tumorLabel);
+renderList("germline-list", germlineVariants, germlineLabel);
+</script>
+
+<footer>
+  <p>NFIN 分子谱-试验匹配原型 v3 · 手工输入 · 不存储数据 · 输出不构成治疗建议</p>
+</footer>
+
+</body>
+</html>
